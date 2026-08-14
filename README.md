@@ -350,27 +350,24 @@ tests/test_results.md
 
 ### Product Knowledge Query
 
-![Product Knowledge](docs/screenshots/product_knowledge.png)
+![Product Knowledge](docs/product_knowledge.png)
 
 ### Cocktail Query
 
-![Cocktail Query](docs/screenshots/cocktail_recipe.png)
+![Cocktail Query](docs/cocktail_recipe.png)
 
 ### Age Gate Enforcement
 
-![Age Gate](docs/screenshots/age_gate.png)
+![Age Gate](docs/age_gate.png)
 
 ### Pricing Restriction
 
-![Pricing Restriction](docs/screenshots/pricing_guardrail.png)
+![Pricing Restriction](docs/pricing_guardrail.png)
 
 ### Competitor Restriction
 
-![Competitor Restriction](docs/screenshots/competitor_guardrail.png)
+![Competitor Restriction](docs/competitor_guardrail.png)
 
-### Medical Advice Restriction
-
-![Medical Restriction](docs/screenshots/medical_guardrail.png)
 
 ---
 
