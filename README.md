@@ -1,8 +1,391 @@
 # Pernod Ricard RAG Chatbot
 
-Production Retrieval-Augmented Generation assistant for Pernod Ricard brand knowledge. The stack is FastAPI, hybrid retrieval (Qdrant + BM25 + RRF + MMR), Groq (`llama-3.3-70b-versatile`), mandatory policy guardrails, and a Streamlit interface.
+Production-grade Retrieval-Augmented Generation (RAG) chatbot built for the Pernod Ricard AI Engineering Assignment.
 
-This assistant is intended only for adults of legal drinking age. It never quotes prices, never advises on purchases, and never provides medical or legal advice.
+The system provides grounded answers about Pernod Ricard, its brands, product heritage, cocktail serves, and corporate information while enforcing strict responsible-drinking guardrails and hallucination prevention mechanisms.
+
+---
+
+## Project Overview
+
+This solution implements a complete end-to-end RAG pipeline designed for factual accuracy, responsible AI behavior, and production readiness.
+
+### Key Technologies
+
+- BAAI/bge-m3 Embeddings
+- Qdrant Vector Database
+- BM25 Sparse Retrieval
+- Reciprocal Rank Fusion (RRF)
+- Maximal Marginal Relevance (MMR)
+- Groq Llama 3.3 70B
+- FastAPI Backend
+- Streamlit Frontend
+- Docker Deployment
+- RAGAS Evaluation Framework
+
+---
+
+## Assignment Requirements Coverage
+
+| Requirement | Status |
+|------------|---------|
+| RAG Pipeline | ✅ |
+| Semantic Chunking | ✅ |
+| Vector Database | ✅ Qdrant |
+| Hybrid Retrieval | ✅ Dense + BM25 |
+| RRF Fusion | ✅ |
+| MMR Re-ranking | ✅ |
+| Citation Support | ✅ |
+| Session Memory | ✅ |
+| Guardrails | ✅ |
+| Age Verification | ✅ |
+| Hallucination Prevention | ✅ |
+| Docker Deployment | ✅ |
+| Streamlit UI | ✅ |
+| Evaluation Framework | ✅ |
+| RAGAS Metrics | ✅ |
+
+---
+
+## System Architecture
+
+```mermaid
+flowchart TD
+
+A[User] --> B[Streamlit UI]
+
+B --> C[FastAPI Backend]
+
+C --> D[Guardrails]
+
+D --> E[Query Processing]
+
+E --> F[Dense Retrieval - Qdrant]
+
+E --> G[BM25 Retrieval]
+
+F --> H[RRF Fusion]
+
+G --> H
+
+H --> I[MMR Re-ranking]
+
+I --> J[Confidence Scoring]
+
+J -->|Low Confidence| K[Safe Refusal]
+
+J -->|High Confidence| L[Groq Llama 3.3 70B]
+
+L --> M[Cited Response]
+
+M --> B
+```
+
+---
+
+## Core Features
+
+### Knowledge Retrieval
+
+The chatbot answers questions about:
+
+- Pernod Ricard corporate information
+- Brand portfolios
+- Product heritage
+- Product characteristics
+- Cocktail recipes
+- Brand history
+- Responsible drinking resources
+
+### Hybrid Retrieval
+
+The retrieval pipeline combines:
+
+1. Dense Retrieval using BAAI/bge-m3 embeddings
+2. Sparse Retrieval using BM25
+3. Reciprocal Rank Fusion (RRF)
+4. MMR Re-ranking
+
+This approach improves recall while maintaining response diversity and relevance.
+
+### Citation Grounding
+
+Every generated response includes citations to retrieved knowledge sources.
+
+Benefits:
+
+- Improved transparency
+- Easier verification
+- Reduced hallucination risk
+- Traceable answers
+
+---
+
+## Semantic Chunking Strategy
+
+Documents are split using semantic-aware chunking instead of fixed-size windows.
+
+Advantages:
+
+- Better context preservation
+- Improved retrieval quality
+- Reduced chunk fragmentation
+- Higher answer relevance
+
+Chunking configuration:
+
+- Semantic boundaries preserved
+- Overlapping context windows
+- Metadata enrichment
+- Source traceability
+
+---
+
+## Session Memory
+
+The chatbot maintains lightweight conversational memory.
+
+Supported scenarios:
+
+User:
+"Tell me about Jameson."
+
+Follow-up:
+
+"What cocktails can I make with it?"
+
+The system resolves references using stored conversational context without requiring the user to repeat the brand name.
+
+---
+
+## Hallucination Prevention
+
+Multiple safeguards prevent unsupported responses.
+
+### Protection Layers
+
+1. Hybrid Retrieval Validation
+2. Retrieval Confidence Scoring
+3. Citation Enforcement
+4. Context Boundary Validation
+5. Safe Refusal Mechanism
+
+If confidence falls below the configured threshold, the assistant refuses the query instead of generating speculative content.
+
+Example:
+
+```
+I don't have that information.
+```
+
+---
+
+## Responsible AI Guardrails
+
+The chatbot enforces strict domain and safety controls.
+
+### Supported
+
+- Pernod Ricard brands
+- Product information
+- Corporate information
+- Cocktail serves
+- Responsible drinking content
+
+### Restricted
+
+- Underage alcohol requests
+- Pricing information
+- Purchase recommendations
+- Competitor comparisons
+- Medical advice
+- Dangerous drinking guidance
+- Illegal or harmful activities
+- Off-topic requests
+
+---
+
+## Guardrail Categories
+
+### Age Gate
+
+Example:
+
+```
+I am 16 years old. Tell me about Jameson.
+```
+
+Response:
+
+```
+This assistant is only available to adults of legal drinking age.
+```
+
+### Pricing Restriction
+
+Example:
+
+```
+What is the price of Chivas Regal 18?
+```
+
+Response:
+
+```
+I cannot provide prices or purchasing guidance.
+```
+
+### Competitor Comparison Restriction
+
+Example:
+
+```
+Is Johnnie Walker better than Chivas?
+```
+
+Response:
+
+```
+I do not compare Pernod Ricard brands with competitor brands.
+```
+
+### Medical Advice Restriction
+
+Example:
+
+```
+Can I drink whiskey while taking antidepressants?
+```
+
+Response:
+
+```
+Please consult independent health resources.
+```
+
+---
+
+## Evaluation
+
+The system was evaluated using:
+
+### RAGAS Metrics
+
+- Faithfulness
+- Context Precision
+- Answer Relevancy
+
+Evaluation workflow:
+
+```
+User Query
+    ↓
+Retriever
+    ↓
+Generator
+    ↓
+RAGAS Metrics
+```
+
+Generated reports:
+
+```
+data/indexes/ragas_report.md
+data/indexes/*.json
+```
+
+---
+
+## Test Results
+
+A comprehensive test suite containing 15+ assignment-aligned test cases was executed.
+
+Coverage includes:
+
+- Product Knowledge
+- Brand Portfolio
+- Company Information
+- Cocktail Queries
+- Sustainability Queries
+- Age Gate Validation
+- Pricing Restrictions
+- Competitor Restrictions
+- Medical Advice Restrictions
+- Dangerous Consumption Queries
+- Hallucination Boundary Tests
+- Off-Topic Requests
+
+Detailed results:
+
+```
+tests/test_results.md
+```
+
+---
+
+## Repository Structure
+
+```text
+.
+├── app/
+├── data/
+│   ├── synthetic/
+│   ├── crawled/
+│   └── indexes/
+├── tests/
+│   └── test_results.md
+├── ui/
+├── docs/
+│   └── screenshots/
+├── docker/
+├── Makefile
+├── docker-compose.yml
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## Screenshots
+
+### Product Knowledge Query
+
+![Product Knowledge](docs/screenshots/product_knowledge.png)
+
+### Cocktail Query
+
+![Cocktail Query](docs/screenshots/cocktail_recipe.png)
+
+### Age Gate Enforcement
+
+![Age Gate](docs/screenshots/age_gate.png)
+
+### Pricing Restriction
+
+![Pricing Restriction](docs/screenshots/pricing_guardrail.png)
+
+### Competitor Restriction
+
+![Competitor Restriction](docs/screenshots/competitor_guardrail.png)
+
+### Medical Advice Restriction
+
+![Medical Restriction](docs/screenshots/medical_guardrail.png)
+
+---
+
+## Future Improvements
+
+- Cross-Encoder Re-ranking
+- Multi-Query Retrieval
+- Knowledge Graph Integration
+- Multi-language Support
+- Human Feedback Evaluation
+- Production Analytics Dashboard
+- Continuous Knowledge Refresh
+
+---
+
 
 ## Architecture
 
