@@ -28,13 +28,13 @@ class Settings(BaseSettings):
     )
     admin_api_token: str = Field(default="")
 
-    # --- Grok / X.AI ---
-    grok_api_key: str = Field(default="")
-    grok_api_base: str = Field(default="https://api.x.ai/v1")
-    grok_model: str = Field(default="grok-3")
-    grok_timeout_seconds: float = Field(default=60.0, ge=1.0)
-    grok_max_tokens: int = Field(default=1024, ge=16)
-    grok_temperature: float = Field(default=0.2, ge=0.0, le=2.0)
+    # --- Groq (OpenAI-compatible) ---
+    groq_api_key: str = Field(default="")
+    groq_api_base: str = Field(default="https://api.groq.com/openai/v1")
+    groq_model: str = Field(default="llama3-70b-8192")
+    groq_timeout_seconds: float = Field(default=60.0, ge=1.0)
+    groq_max_tokens: int = Field(default=1024, ge=16)
+    groq_temperature: float = Field(default=0.2, ge=0.0, le=2.0)
 
     # --- OpenAI (optional embedding fallback) ---
     openai_api_key: str = Field(default="")

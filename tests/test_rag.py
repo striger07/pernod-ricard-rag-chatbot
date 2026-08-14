@@ -33,7 +33,7 @@ def _settings(**overrides) -> Settings:
         "age_gate_enabled": True,
         "admin_api_token": "test-admin",
         "retrieval_confidence_threshold": 0.35,
-        "grok_api_key": "test",
+        "groq_api_key": "test",
         "app_env": "development",
         "rrf_k": 60,
         "final_top_k": 2,

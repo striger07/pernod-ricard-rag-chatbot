@@ -1,4 +1,4 @@
-"""Grok LLM service (OpenAI-compatible X.AI API). Isolated from retrieval."""
+"""Groq LLM service (OpenAI-compatible Groq API). Isolated from retrieval."""
 
 from __future__ import annotations
 
@@ -24,11 +24,11 @@ class ChatMessage(TypedDict):
 
 
 class LLMServiceError(Exception):
-    """Raised when the Grok API cannot produce a completion."""
+    """Raised when the Groq API cannot produce a completion."""
 
 
 class GrokLLMService:
-    """Async Grok wrapper using the OpenAI SDK against https://api.x.ai/v1."""
+    """Async Groq wrapper using the OpenAI SDK against https://api.groq.com/openai/v1."""
 
     def __init__(
         self,
@@ -41,12 +41,12 @@ class GrokLLMService:
     @property
     def client(self) -> AsyncOpenAI:
         if self._client is None:
-            if not self.settings.grok_api_key:
-                raise LLMServiceError("GROK_API_KEY is not configured")
+            if not self.settings.groq_api_key:
+                raise LLMServiceError("GROQ_API_KEY is not configured")
             self._client = AsyncOpenAI(
-                api_key=self.settings.grok_api_key,
-                base_url=self.settings.grok_api_base,
-                timeout=self.settings.grok_timeout_seconds,
+                api_key=self.settings.groq_api_key,
+                base_url=self.settings.groq_api_base,
+                timeout=self.settings.groq_timeout_seconds,
             )
         return self._client
 
@@ -69,13 +69,13 @@ class GrokLLMService:
         try:
             text = completion.choices[0].message.content or ""
         except (AttributeError, IndexError) as exc:
-            raise LLMServiceError("Grok returned an empty completion") from exc
+            raise LLMServiceError("Groq returned an empty completion") from exc
         cleaned = text.strip()
         if not cleaned:
-            raise LLMServiceError("Grok returned an empty completion")
+            raise LLMServiceError("Groq returned an empty completion")
         logger.info(
-            "grok_generate_complete",
-            model=model or self.settings.grok_model,
+            "groq_generate_complete",
+            model=model or self.settings.groq_model,
             chars=len(cleaned),
         )
         return cleaned
@@ -107,8 +107,8 @@ class GrokLLMService:
             emitted += len(delta)
             yield delta
         logger.info(
-            "grok_stream_complete",
-            model=model or self.settings.grok_model,
+            "groq_stream_complete",
+            model=model or self.settings.groq_model,
             chars=emitted,
         )
 
@@ -122,10 +122,10 @@ class GrokLLMService:
         stream: bool,
     ) -> Any:
         kwargs: dict[str, Any] = {
-            "model": model or self.settings.grok_model,
+            "model": model or self.settings.groq_model,
             "messages": messages,
-            "temperature": self.settings.grok_temperature if temperature is None else temperature,
-            "max_tokens": self.settings.grok_max_tokens if max_tokens is None else max_tokens,
+            "temperature": self.settings.groq_temperature if temperature is None else temperature,
+            "max_tokens": self.settings.groq_max_tokens if max_tokens is None else max_tokens,
             "stream": stream,
         }
         try:
@@ -142,11 +142,11 @@ class GrokLLMService:
         except LLMServiceError:
             raise
         except APIStatusError as exc:
-            logger.error("grok_api_status_error", status=getattr(exc, "status_code", None))
-            raise LLMServiceError("Grok API returned an error status") from exc
+            logger.error("groq_api_status_error", status=getattr(exc, "status_code", None))
+            raise LLMServiceError("Groq API returned an error status") from exc
         except Exception as exc:
-            logger.error("grok_api_failed", error_type=type(exc).__name__)
-            raise LLMServiceError("Grok API request failed") from exc
+            logger.error("groq_api_failed", error_type=type(exc).__name__)
+            raise LLMServiceError("Groq API request failed") from exc
 
     def _validate_messages(self, messages: Sequence[ChatMessage]) -> list[dict[str, str]]:
         if not messages:

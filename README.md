@@ -1,6 +1,6 @@
 # Pernod Ricard RAG Chatbot
 
-Production Retrieval-Augmented Generation assistant for Pernod Ricard brand knowledge. The stack is FastAPI, hybrid retrieval (Qdrant + BM25 + RRF + MMR), Grok (X.AI), mandatory policy guardrails, and a Streamlit interface.
+Production Retrieval-Augmented Generation assistant for Pernod Ricard brand knowledge. The stack is FastAPI, hybrid retrieval (Qdrant + BM25 + RRF + MMR), Groq (`llama3-70b-8192`), mandatory policy guardrails, and a Streamlit interface.
 
 This assistant is intended only for adults of legal drinking age. It never quotes prices, never advises on purchases, and never provides medical or legal advice.
 
@@ -27,7 +27,7 @@ MMR
  ↓
 Confidence Boundary
  ↓
-Grok LLM
+Groq LLM
  ↓
 Citation + Response
  ↓
@@ -40,8 +40,8 @@ Request path in code:
 2. Policy orchestrator: off-topic, competitor, medical/legal, pricing.
 3. Dense search in Qdrant and BM25 over the persisted corpus.
 4. Reciprocal Rank Fusion (`k=60` by default), then MMR diversity.
-5. If retrieval confidence is below `RETRIEVAL_CONFIDENCE_THRESHOLD`, the API returns exactly `I don't have that information.` and does not call Grok.
-6. Otherwise Grok answers from untrusted retrieved documents with citation rules.
+5. If retrieval confidence is below `RETRIEVAL_CONFIDENCE_THRESHOLD`, the API returns exactly `I don't have that information.` and does not call Groq.
+6. Otherwise Groq answers from untrusted retrieved documents with citation rules.
 7. Cocktail/consumption answers receive a responsible-drinking warning.
 
 ## Setup
@@ -55,7 +55,7 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Edit `.env` and set `GROK_API_KEY`. Optional: `ADMIN_API_TOKEN` for `/ingest`.
+Edit `.env` and set `GROQ_API_KEY`. Optional: `ADMIN_API_TOKEN` for `/ingest`.
 
 Start Qdrant, index knowledge, then run API and UI:
 
@@ -86,8 +86,8 @@ If live crawling is blocked, ingestion loads `data/synthetic/` automatically.
 | `LOG_LEVEL` | Structured log level |
 | `CORS_ALLOWED_ORIGINS` | Allowed browser origins (Streamlit) |
 | `ADMIN_API_TOKEN` | Shared secret for `POST /ingest` |
-| `GROK_API_KEY` / `GROK_API_BASE` / `GROK_MODEL` | X.AI OpenAI-compatible client |
-| `GROK_TIMEOUT_SECONDS` / `GROK_MAX_TOKENS` / `GROK_TEMPERATURE` | Generation controls |
+| `GROQ_API_KEY` / `GROQ_API_BASE` / `GROQ_MODEL` | Groq OpenAI-compatible client (`llama3-70b-8192`) |
+| `GROQ_TIMEOUT_SECONDS` / `GROQ_MAX_TOKENS` / `GROQ_TEMPERATURE` | Generation controls |
 | `OPENAI_API_KEY` / `OPENAI_EMBEDDING_MODEL` / `OPENAI_EMBEDDING_DIMENSION` | Optional OpenAI embedding fallback |
 | `EMBEDDING_PROVIDER` / `EMBEDDING_MODEL` / `EMBEDDING_DIMENSION` | Primary BAAI/bge-m3 settings |
 | `EMBEDDING_BATCH_SIZE` / `EMBEDDING_MAX_RETRIES` / `EMBEDDING_DEVICE` | Embedder runtime |
@@ -162,14 +162,14 @@ pytest
 
 Pass/fail lines are appended to `data/indexes/pytest_results.log`.
 
-RAGAS (Faithfulness, Context Precision, Answer Relevancy) uses the **same** RAG engine and a Grok judge:
+RAGAS (Faithfulness, Context Precision, Answer Relevancy) uses the **same** RAG engine and a Groq judge:
 
 ```bash
 conda activate pernod_rag
 make evaluate
 ```
 
-Reports: `data/indexes/ragas_report.md` and timestamped JSON. Exit code `1` if a metric is below its threshold. `GROK_API_KEY` is required for the judge LLM.
+Reports: `data/indexes/ragas_report.md` and timestamped JSON. Exit code `1` if a metric is below its threshold. `GROQ_API_KEY` is required for the judge LLM.
 
 ## Deployment
 
@@ -198,7 +198,7 @@ Production notes:
 - **Hybrid retrieval** because brand names and heritage phrases benefit from lexical BM25 as well as dense similarity.
 - **Hard confidence boundary** instead of letting the LLM hedge: unsupported questions return a single canonical sentence.
 - **Guardrails as dedicated modules** plus prompt policy, matching the assignment’s “both middleware and prompt” rule.
-- **Grok via the OpenAI SDK** (`base_url=https://api.x.ai/v1`) so the generator is isolated behind `GrokLLMService`.
+- **Groq via the OpenAI SDK** (`base_url=https://api.groq.com/openai/v1`, model `llama3-70b-8192`) so the generator is isolated behind `GrokLLMService`.
 - **Synthetic Markdown fallback** so crawl blocks (network, age walls, bot protection) do not stop a demo index.
 - **Conda `pernod_rag`** is the supported local workflow; Docker uses its own image Python 3.10 environment.
 

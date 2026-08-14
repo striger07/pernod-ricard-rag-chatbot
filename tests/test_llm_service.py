@@ -8,7 +8,12 @@ from rag.llm_service import GrokLLMService, LLMServiceError
 
 
 def _settings() -> Settings:
-    return Settings(grok_api_key="test-key", grok_api_base="https://api.x.ai/v1", grok_model="grok-3", _env_file=None)
+    return Settings(
+        groq_api_key="test-key",
+        groq_api_base="https://api.groq.com/openai/v1",
+        groq_model="llama3-70b-8192",
+        _env_file=None,
+    )
 
 
 @pytest.mark.asyncio
@@ -23,7 +28,7 @@ async def test_generate_returns_message():
     text = await service.generate([{"role": "user", "content": "What is Absolut?"}])
     assert text == "Absolut is a Swedish vodka."
     kwargs = client.chat.completions.create.await_args.kwargs
-    assert kwargs["model"] == "grok-3"
+    assert kwargs["model"] == "llama3-70b-8192"
     assert kwargs["stream"] is False
     assert kwargs["messages"][0]["role"] == "user"
 
@@ -50,6 +55,6 @@ async def test_generate_rejects_empty_messages():
 
 
 def test_missing_api_key_raises():
-    service = GrokLLMService(settings=Settings(grok_api_key="", _env_file=None))
+    service = GrokLLMService(settings=Settings(groq_api_key="", _env_file=None))
     with pytest.raises(LLMServiceError):
         _ = service.client

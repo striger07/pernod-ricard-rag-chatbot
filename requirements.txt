@@ -28,7 +28,7 @@ torch>=2.2.0,<2.7
 qdrant-client==1.12.2
 rank-bm25==0.2.2
 
-# LLM client (Grok is OpenAI-compatible via X.AI)
+# LLM client (Groq is OpenAI-compatible)
 openai==1.59.8
 
 # Frontend

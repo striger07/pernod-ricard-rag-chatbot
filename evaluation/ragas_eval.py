@@ -53,15 +53,15 @@ def run_ragas_metrics(rows: list[dict[str, Any]], settings: Settings) -> dict[st
     from ragas.llms import LangchainLLMWrapper
     from ragas.metrics import Faithfulness, LLMContextPrecisionWithoutReference, ResponseRelevancy
 
-    if not settings.grok_api_key:
-        raise RuntimeError("GROK_API_KEY is required to run RAGAS judge metrics")
+    if not settings.groq_api_key:
+        raise RuntimeError("GROQ_API_KEY is required to run RAGAS judge metrics")
 
     judge = ChatOpenAI(
-        model=settings.grok_model,
-        api_key=settings.grok_api_key,
-        base_url=settings.grok_api_base,
+        model=settings.groq_model,
+        api_key=settings.groq_api_key,
+        base_url=settings.groq_api_base,
         temperature=0,
-        timeout=settings.grok_timeout_seconds,
+        timeout=settings.groq_timeout_seconds,
     )
     wrapped = LangchainLLMWrapper(judge)
     samples = [

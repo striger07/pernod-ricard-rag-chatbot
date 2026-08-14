@@ -3,7 +3,7 @@ from config.sources import allowed_hostnames, official_url_for_source_name
 
 
 def test_settings_defaults(monkeypatch):
-    monkeypatch.delenv("GROK_API_KEY", raising=False)
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
     reset_settings_cache()
     settings = Settings(_env_file=None)
     assert settings.embedding_model == "BAAI/bge-m3"

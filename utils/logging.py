@@ -17,6 +17,7 @@ _SENSITIVE_KEYS = frozenset(
         "secret",
         "token",
         "grok_api_key",
+        "groq_api_key",
         "openai_api_key",
         "qdrant_api_key",
         "admin_api_token",
