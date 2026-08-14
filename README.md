@@ -1,6 +1,6 @@
 # Pernod Ricard RAG Chatbot
 
-Production Retrieval-Augmented Generation assistant for Pernod Ricard brand knowledge. The stack is FastAPI, hybrid retrieval (Qdrant + BM25 + RRF + MMR), Groq (`llama3-70b-8192`), mandatory policy guardrails, and a Streamlit interface.
+Production Retrieval-Augmented Generation assistant for Pernod Ricard brand knowledge. The stack is FastAPI, hybrid retrieval (Qdrant + BM25 + RRF + MMR), Groq (`llama-3.3-70b-versatile`), mandatory policy guardrails, and a Streamlit interface.
 
 This assistant is intended only for adults of legal drinking age. It never quotes prices, never advises on purchases, and never provides medical or legal advice.
 
@@ -86,7 +86,10 @@ If live crawling is blocked, ingestion loads `data/synthetic/` automatically.
 | `LOG_LEVEL` | Structured log level |
 | `CORS_ALLOWED_ORIGINS` | Allowed browser origins (Streamlit) |
 | `ADMIN_API_TOKEN` | Shared secret for `POST /ingest` |
-| `GROQ_API_KEY` / `GROQ_API_BASE` / `GROQ_MODEL` | Groq OpenAI-compatible client (`llama3-70b-8192`) |
+| `GROQ_API_KEY` / `GROQ_API_BASE` / `GROQ_MODEL` | Groq OpenAI-compatible client (`llama-3.3-70b-versatile`) |
+| `GROQ_EVAL_MODEL` | Model used for `make evaluate` generation and judging (`llama-3.1-8b-instant`) |
+| `GROQ_EVAL_REQUESTS_PER_SECOND` | Spacing between RAGAS judge calls |
+| `RAGAS_USE_LIBRARY_METRICS` | `false` uses compact RAGAS-style JSON scores; `true` uses the official ragas library (much higher Groq token use) |
 | `GROQ_TIMEOUT_SECONDS` / `GROQ_MAX_TOKENS` / `GROQ_TEMPERATURE` | Generation controls |
 | `OPENAI_API_KEY` / `OPENAI_EMBEDDING_MODEL` / `OPENAI_EMBEDDING_DIMENSION` | Optional OpenAI embedding fallback |
 | `EMBEDDING_PROVIDER` / `EMBEDDING_MODEL` / `EMBEDDING_DIMENSION` | Primary BAAI/bge-m3 settings |
@@ -169,7 +172,7 @@ conda activate pernod_rag
 make evaluate
 ```
 
-Reports: `data/indexes/ragas_report.md` and timestamped JSON. Exit code `1` if a metric is below its threshold. `GROQ_API_KEY` is required for the judge LLM.
+Reports: `data/indexes/ragas_report.md` and timestamped JSON. Exit code `1` if a metric is below its threshold. `GROQ_API_KEY` is required. Evaluation uses `GROQ_EVAL_MODEL` so it does not consume the 70B daily token cap used by the chat API.
 
 ## Deployment
 
@@ -198,7 +201,7 @@ Production notes:
 - **Hybrid retrieval** because brand names and heritage phrases benefit from lexical BM25 as well as dense similarity.
 - **Hard confidence boundary** instead of letting the LLM hedge: unsupported questions return a single canonical sentence.
 - **Guardrails as dedicated modules** plus prompt policy, matching the assignment’s “both middleware and prompt” rule.
-- **Groq via the OpenAI SDK** (`base_url=https://api.groq.com/openai/v1`, model `llama3-70b-8192`) so the generator is isolated behind `GrokLLMService`.
+- **Groq via the OpenAI SDK** (`base_url=https://api.groq.com/openai/v1`, model `llama-3.3-70b-versatile`) so the generator is isolated behind `GrokLLMService`.
 - **Synthetic Markdown fallback** so crawl blocks (network, age walls, bot protection) do not stop a demo index.
 - **Conda `pernod_rag`** is the supported local workflow; Docker uses its own image Python 3.10 environment.
 

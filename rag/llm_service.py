@@ -7,7 +7,7 @@ from typing import Any, AsyncIterator, Optional, Sequence, TypedDict
 from openai import APIConnectionError, APIStatusError, APITimeoutError, AsyncOpenAI, RateLimitError
 from tenacity import (
     AsyncRetrying,
-    retry_if_exception_type,
+    retry_if_exception,
     stop_after_attempt,
     wait_exponential,
 )
@@ -16,6 +16,11 @@ from config.settings import Settings, get_settings
 from utils.logging import get_logger
 
 logger = get_logger(__name__)
+
+
+def is_daily_token_limit_error(exc: BaseException) -> bool:
+    text = str(exc).lower()
+    return "tokens per day" in text or "(tpd)" in text
 
 
 class ChatMessage(TypedDict):
@@ -133,16 +138,37 @@ class GrokLLMService:
                 reraise=True,
                 stop=stop_after_attempt(3),
                 wait=wait_exponential(multiplier=0.5, min=0.5, max=8),
-                retry=retry_if_exception_type(
-                    (APIConnectionError, APITimeoutError, RateLimitError)
+                retry=retry_if_exception(
+                    lambda exc: isinstance(exc, (APIConnectionError, APITimeoutError))
+                    or (
+                        isinstance(exc, RateLimitError)
+                        and not is_daily_token_limit_error(exc)
+                    )
                 ),
             ):
                 with attempt:
                     return await self.client.chat.completions.create(**kwargs)
         except LLMServiceError:
             raise
+        except RateLimitError as exc:
+            logger.error("groq_api_rate_limited", daily=is_daily_token_limit_error(exc))
+            if is_daily_token_limit_error(exc):
+                raise LLMServiceError(
+                    "Groq daily token limit reached for this model. "
+                    "Wait for the quota reset, or set GROQ_MODEL / GROQ_EVAL_MODEL to llama-3.1-8b-instant."
+                ) from exc
+            raise LLMServiceError("Groq rate limit exceeded") from exc
         except APIStatusError as exc:
-            logger.error("groq_api_status_error", status=getattr(exc, "status_code", None))
+            status = getattr(exc, "status_code", None)
+            logger.error("groq_api_status_error", status=status)
+            if status == 401:
+                raise LLMServiceError(
+                    "Groq rejected GROQ_API_KEY (401). Check the key in .env and restart."
+                ) from exc
+            if status == 400:
+                raise LLMServiceError(
+                    "Groq rejected the request (400). The configured GROQ_MODEL may be decommissioned."
+                ) from exc
             raise LLMServiceError("Groq API returned an error status") from exc
         except Exception as exc:
             logger.error("groq_api_failed", error_type=type(exc).__name__)

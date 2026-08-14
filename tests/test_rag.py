@@ -13,7 +13,7 @@ from api.main import create_app
 from api.schemas import ChatRequest
 from api.sessions import SessionStore
 from config.settings import Settings, get_settings
-from evaluation.ragas_eval import RagasEvaluator
+from evaluation.ragas_eval import RagasEvaluator, _normalise_scores, parse_judge_payload
 from guardrails.orchestrator import GuardrailOrchestrator
 from ingestion.embedder import BGEEmbedder
 from rag.engine import RagEngine
@@ -511,3 +511,25 @@ async def test_25_ragas_evaluator_writes_scores(tmp_path):
     markdown = tmp_path / "ragas_report.md"
     assert markdown.exists()
     assert "faithfulness" in markdown.read_text(encoding="utf-8")
+
+
+def test_ragas_normalise_scores_drops_nan():
+    scores = _normalise_scores(
+        {
+            "faithfulness": float("nan"),
+            "context_precision": 0.64,
+            "answer_relevancy": 0.81,
+        }
+    )
+    assert "faithfulness" not in scores
+    assert scores["context_precision"] == pytest.approx(0.64)
+    assert scores["answer_relevancy"] == pytest.approx(0.81)
+
+
+def test_parse_judge_payload_extracts_json_object():
+    scores = parse_judge_payload(
+        'Here you go\n{"faithfulness": 0.9, "context_precision": 0.7, "answer_relevancy": 1}\n'
+    )
+    assert scores["faithfulness"] == pytest.approx(0.9)
+    assert scores["context_precision"] == pytest.approx(0.7)
+    assert scores["answer_relevancy"] == pytest.approx(1.0)

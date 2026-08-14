@@ -31,7 +31,9 @@ class Settings(BaseSettings):
     # --- Groq (OpenAI-compatible) ---
     groq_api_key: str = Field(default="")
     groq_api_base: str = Field(default="https://api.groq.com/openai/v1")
-    groq_model: str = Field(default="llama3-70b-8192")
+    groq_model: str = Field(default="llama-3.3-70b-versatile")
+    groq_eval_model: str = Field(default="llama-3.1-8b-instant")
+    groq_eval_requests_per_second: float = Field(default=0.4, ge=0.01, le=5.0)
     groq_timeout_seconds: float = Field(default=60.0, ge=1.0)
     groq_max_tokens: int = Field(default=1024, ge=16)
     groq_temperature: float = Field(default=0.2, ge=0.0, le=2.0)
@@ -109,6 +111,7 @@ class Settings(BaseSettings):
     ragas_context_precision_threshold: float = Field(default=0.60, ge=0.0, le=1.0)
     ragas_answer_relevancy_threshold: float = Field(default=0.60, ge=0.0, le=1.0)
     ragas_output_dir: str = Field(default="data/indexes")
+    ragas_use_library_metrics: bool = Field(default=False)
 
     @field_validator("embedding_provider")
     @classmethod
@@ -127,6 +130,17 @@ class Settings(BaseSettings):
         if normalized not in allowed:
             raise ValueError(f"log_level must be one of {sorted(allowed)}")
         return normalized
+
+    @field_validator("groq_api_key", mode="before")
+    @classmethod
+    def normalize_groq_api_key(cls, value: Optional[str]) -> str:
+        if value is None:
+            return ""
+        key = str(value).strip().strip('"').strip("'")
+        second = key.find("gsk_", 1)
+        if second != -1:
+            key = key[second:]
+        return key
 
     @field_validator("qdrant_api_key", mode="before")
     @classmethod

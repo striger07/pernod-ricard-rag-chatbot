@@ -2,6 +2,16 @@ from config.settings import Settings, reset_settings_cache
 from config.sources import allowed_hostnames, official_url_for_source_name
 
 
+def test_groq_api_key_strips_concatenated_gsk_prefix():
+    settings = Settings(
+        groq_api_key="gsk_OLDgsk_VALIDKEYSEGMENT1234567890abcdef",
+        _env_file=None,
+    )
+    assert settings.groq_api_key.startswith("gsk_")
+    assert "gsk_" not in settings.groq_api_key[4:]
+    assert settings.groq_api_key == "gsk_VALIDKEYSEGMENT1234567890abcdef"
+
+
 def test_settings_defaults(monkeypatch):
     monkeypatch.delenv("GROQ_API_KEY", raising=False)
     reset_settings_cache()
@@ -15,6 +25,8 @@ def test_settings_defaults(monkeypatch):
     assert settings.niaaa_url.startswith("https://")
     assert settings.age_gate_enabled is True
     assert settings.minimum_legal_drinking_age >= 18
+    assert settings.groq_model == "llama-3.3-70b-versatile"
+    assert settings.groq_eval_model == "llama-3.1-8b-instant"
 
 
 def test_embedding_provider_validation():
