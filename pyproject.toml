@@ -1,0 +1,34 @@
+[project]
+name = "pernod-ricard-rag"
+version = "0.1.0"
+description = "Pernod Ricard RAG-based chatbot"
+requires-python = ">=3.10,<3.11"
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+extend-exclude = "/(.venv|venv|qdrant_storage|data/indexes)/"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+exclude = [".venv", "venv", "qdrant_storage", "data/indexes"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+"api/**.py" = ["B008"]
+"rag/prompts.py" = ["E501"]
+"evaluation/dataset.py" = ["E501"]
+"frontend/app.py" = ["E501", "E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+pythonpath = ["."]
+addopts = "-q --strict-markers"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]

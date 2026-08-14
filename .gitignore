@@ -1,0 +1,131 @@
+# =============================================================================
+# Pernod Ricard RAG Chatbot — .gitignore
+# =============================================================================
+
+# --- Secrets & local environment (never commit) ---
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments (Conda env `pernod_rag` lives outside the repo)
+.venv/
+venv/
+ENV/
+env/
+
+# --- Test, lint, and type-check caches ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.tox/
+.nox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+.pyre/
+.ruff_cache/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- ML / embeddings / model caches ---
+.cache/
+.sentence-transformers/
+.huggingface/
+huggingface/
+*.pt
+*.pth
+*.bin
+*.onnx
+*.safetensors
+*.ckpt
+
+# --- Project indexes & vector storage (generated at runtime) ---
+data/indexes/*
+!data/indexes/.gitkeep
+qdrant_storage/
+
+# Keep committed fallback corpus; only ignore generated index artefacts above.
+# data/synthetic/ is tracked intentionally.
+
+# --- Evaluation & run artefacts ---
+eval.txt
+data/indexes/ragas_report*.json
+data/indexes/ragas_report.md
+data/indexes/batch*_evaluation.txt
+data/indexes/pytest_results.log
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Crawling / browser automation caches ---
+.crawl4ai/
+.playwright/
+playwright-report/
+test-results/
+
+# --- OS ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Editors & IDE ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# Cursor local state (keep .cursorrules in repo)
+.cursor/
+agent-transcripts/
+
+# Local agent skill caches (not part of application source)
+.agents/
+
+# --- Packaging / deployment scratch ---
+*.tar
+*.tar.gz
+*.zip

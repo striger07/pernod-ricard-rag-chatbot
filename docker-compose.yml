@@ -1,0 +1,78 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.12.5
+    container_name: pernod-rag-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__HTTP_PORT: 6333
+      QDRANT__SERVICE__GRPC_PORT: 6334
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/6333'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pernod-rag-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 8
+      start_period: 40s
+
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pernod-rag-ui
+    restart: unless-stopped
+    command:
+      [
+        "streamlit",
+        "run",
+        "frontend/app.py",
+        "--server.port=8501",
+        "--server.address=0.0.0.0",
+        "--browser.gatherUsageStats=false",
+      ]
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      BACKEND_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8501/_stcore/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 8
+      start_period: 40s
+
+volumes:
+  qdrant_storage:

@@ -1,0 +1,6 @@
+Always refer to PROJECT_SPEC.md for architectural requirements. 
+We are building a Pernod Ricard RAG Chatbot. 
+Backend: FastAPI, Grok API, BAAI/bge-m3 embeddings, Qdrant. 
+Rule 1: Never use placeholders (TODO, pass). Write complete code.
+Rule 2: Build iteratively. Wait for user approval before moving to the next component.
+Rule 3: If you encounter an error twice, STOP. Do not guess. Ask the user for clarification.
