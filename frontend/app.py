@@ -117,7 +117,7 @@ def _confidence_label(value: Optional[float]) -> str:
     return f"{band} retrieval confidence · {pct}%"
 
 
-def _render_citations(citations: list[dict[str, Any]]) -> None:
+def _render_citations(citations: list[dict[str, Any]], *, key_prefix: str) -> None:
     if not citations:
         st.caption("No citations for this reply.")
         return
@@ -137,7 +137,8 @@ def _render_citations(citations: list[dict[str, Any]]) -> None:
             else:
                 st.markdown(f"[{index + 1}] {title} · score {score_text}")
         with cols[1]:
-            if st.button("Preview", key=f"preview-{url}-{index}"):
+            button_key = f"preview-{key_prefix}-{index}-{url}"
+            if st.button("Preview", key=button_key):
                 st.session_state.preview_source = citation
 
 
@@ -171,7 +172,7 @@ def _render_preview_modal() -> None:
         if score is not None:
             st.caption(f"Retrieval score: {float(score):.3f}")
         st.write(_load_preview_content(citation))
-        if st.button("Close preview"):
+        if st.button("Close preview", key="close-source-preview"):
             st.session_state.preview_source = None
             st.rerun()
 
@@ -284,7 +285,7 @@ def main() -> None:
                 f'<span class="confidence-badge">{_confidence_label(st.session_state.last_confidence)}</span>',
                 unsafe_allow_html=True,
             )
-        _render_citations(st.session_state.last_citations)
+        _render_citations(st.session_state.last_citations, key_prefix="drawer")
         st.divider()
         if st.button("New conversation"):
             st.session_state.messages = []
@@ -320,7 +321,7 @@ def main() -> None:
             if st.button(label, use_container_width=True):
                 st.session_state.pending_prompt = question
 
-    for message in st.session_state.messages:
+    for message_index, message in enumerate(st.session_state.messages):
         role = message.get("role")
         css = "user-bubble" if role == "user" else "assistant-bubble"
         with st.chat_message("user" if role == "user" else "assistant"):
@@ -332,7 +333,7 @@ def main() -> None:
                 citations = message.get("citations") or []
                 if citations:
                     with st.expander("Sources"):
-                        _render_citations(citations)
+                        _render_citations(citations, key_prefix=f"history-{message_index}")
 
     _render_preview_modal()
 

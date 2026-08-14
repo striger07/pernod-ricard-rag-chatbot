@@ -195,13 +195,21 @@ Production notes:
 - Replace the in-memory session store if you run multiple API replicas.
 - First embedding load downloads `BAAI/bge-m3`; size the container memory accordingly.
 
+## LLM choice
+
+**Production chat:** Groq-hosted `llama-3.3-70b-versatile` via the OpenAI-compatible API (`https://api.groq.com/openai/v1`). Chosen for fast inference, low cost, and quality comparable to GPT-3.5+ for grounded brand Q&A. The assignment’s suggested models (GPT-4o, Claude Sonnet 3.5, Gemini 1.5 Pro) remain supported by the same `GrokLLMService` abstraction — change `GROQ_API_BASE` and `GROQ_MODEL` in `.env` to point at another OpenAI-compatible provider.
+
+**Evaluation:** `make evaluate` uses `GROQ_EVAL_MODEL` (`llama-3.1-8b-instant` by default) for answer generation and RAGAS judging. This keeps evaluation off the 70B daily token cap used by the live chat API.
+
+**Cost and limits:** Groq’s free tier imposes daily token limits on larger models (for example ~100k tokens/day on `llama-3.3-70b-versatile`). Expect occasional 429 rate-limit errors under heavy use. For a demo or submission, usage is typically negligible; for sustained production traffic, budget for a paid Groq tier or switch to GPT-4o / Claude / Gemini via the same service interface.
+
 ## Design decisions
 
 - **Local BGE-M3** rather than OpenAI embeddings for the default path, so indexing can run without an OpenAI key. OpenAI remains configurable.
 - **Hybrid retrieval** because brand names and heritage phrases benefit from lexical BM25 as well as dense similarity.
 - **Hard confidence boundary** instead of letting the LLM hedge: unsupported questions return a single canonical sentence.
 - **Guardrails as dedicated modules** plus prompt policy, matching the assignment’s “both middleware and prompt” rule.
-- **Groq via the OpenAI SDK** (`base_url=https://api.groq.com/openai/v1`, model `llama-3.3-70b-versatile`) so the generator is isolated behind `GrokLLMService`.
+- **Groq via the OpenAI SDK** — see [LLM choice](#llm-choice) for rationale, eval model, and quota notes. The generator is isolated behind `GrokLLMService`.
 - **Synthetic Markdown fallback** so crawl blocks (network, age walls, bot protection) do not stop a demo index.
 - **Conda `pernod_rag`** is the supported local workflow; Docker uses its own image Python 3.10 environment.
 
